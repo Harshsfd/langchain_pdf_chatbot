@@ -1,26 +1,19 @@
 # utils.py
 import os
 from typing import List
-from pypdf import PdfReader
-from pypdf import PdfReader
-
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.docstore.document import Document
 from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.vectorstores import FAISS
+from langchain_community.vectorstores import FAISS
+from langchain_community.document_loaders import PyPDFLoader  # ✅ replaces pypdf
 
 def load_pdf(path: str) -> List[Document]:
     """
-    Load PDF from path and return a list of LangChain Documents (one per page).
-    Uses pypdf to avoid loader version mismatches.
+    Load PDF from path and return list of Documents using LangChain's PyPDFLoader.
     """
-    reader = PdfReader(path)
-    docs = []
-    for i, page in enumerate(reader.pages):
-        text = page.extract_text() or ""
-        metadata = {"source": os.path.basename(path), "page": i + 1}
-        docs.append(Document(page_content=text, metadata=metadata))
-    return docs
+    loader = PyPDFLoader(path)
+    documents = loader.load()
+    return documents
 
 def split_docs(documents: List[Document], chunk_size: int = 1000, chunk_overlap: int = 200) -> List[Document]:
     """
@@ -38,8 +31,7 @@ def create_vectorstore(chunks: List[Document], persist: bool = False, persist_pa
     embeddings = OpenAIEmbeddings()
     vectorstore = FAISS.from_documents(chunks, embeddings)
     if persist:
-        # create directory if needed then save
         os.makedirs(persist_path, exist_ok=True)
         vectorstore.save_local(persist_path)
     return vectorstore
-    
+        
