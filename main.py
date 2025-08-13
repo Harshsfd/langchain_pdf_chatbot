@@ -1,6 +1,5 @@
 import streamlit as st
 import os
-from dotenv import load_dotenv
 from utils import load_pdf, split_docs, create_vectorstore
 from langchain.chains import ConversationalRetrievalChain
 from langchain_openai import ChatOpenAI
